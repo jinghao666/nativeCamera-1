@@ -1,4 +1,4 @@
-NVPACK_PATH:= /home/xavier/NVPACK
+NVPACK_PATH:= /home/lineo/NVPACK
 LOCAL_PATH := $(NVPACK_PATH)/Samples/GameWorks_Samples/extensions
 include $(CLEAR_VARS)
 

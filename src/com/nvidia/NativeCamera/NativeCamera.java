@@ -12,9 +12,7 @@ public class NativeCamera extends NvAppBase
     @Override
     protected void onCreate (Bundle savedInstanceState)
     {
-        Log.v("NativeCamera", "Calling subclass onCreate");
-
-    	super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);
 
         Log.v("NativeCamera", "Calling subclass onCreate");
     }

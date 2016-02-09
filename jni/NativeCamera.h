@@ -18,7 +18,7 @@ public:
     NativeCamera(NvPlatformContext* platform);
     ~NativeCamera();
 
-    void focusChanged( bool focused );
+    void focusChanged(bool focused);
     void initUI(void);
     void initRendering(void);
     void draw(void);
@@ -34,15 +34,21 @@ protected:
     void uploadImage( nv::camera2::CameraBuffer &img,
             GLuint *textures);
 
-    void setupCamera();
-    std::unique_ptr<nv::camera2::CameraStream> setupCameraStream(
-            nv::camera2::PixelFormat format);
-    void capture();
-
     std::unique_ptr<NvFramerateCounter> mFrameRate;
     std::unique_ptr<NvGLSLProgram> mProgYUV;
     GLuint mPreviewTextures[4];
     float mViewAspectRatio;
+
+    // Camera setup and destruction
+    void startCamera();
+    void stopCamera();
+
+    // Camera objects
+    std::unique_ptr<nv::camera2::CameraManager> mCameraManager;
+    std::unique_ptr<nv::camera2::CameraDevice>  mCameraDevice;
+    std::unique_ptr<nv::camera2::CameraStream>  mPreviewStream;
+    nv::camera2::StaticProperties mStaticProperties;
+    nv::camera2::CaptureRequest mRequest;
 
 };
 

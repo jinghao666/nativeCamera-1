@@ -25,6 +25,8 @@ APP_ABI := armeabi-v7a
 #       APP_STL := stlport_shared    --> shared STLport library
 #       APP_STL := system            --> default C++ runtime library
 
-APP_STL := gnustl_static
+APP_STL := gnustl_shared #gnustl_static #gnustl_shared
+
 APP_PLATFORM := android-21
+
 APP_CFLAGS = -gdwarf-2 -DANDROID -DUSE_REGAL

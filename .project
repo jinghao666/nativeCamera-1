@@ -10,10 +10,6 @@
 			<triggers>clean,full,incremental,</triggers>
 			<arguments>
 				<dictionary>
-					<key>?children?</key>
-					<value>?name?=outputEntries\|?children?=?name?=entry\\\\\\\|\\\|?name?=entry\\\\\\\|\\\|\||</value>
-				</dictionary>
-				<dictionary>
 					<key>?name?</key>
 					<value></value>
 				</dictionary>
@@ -98,7 +94,7 @@
 		<link>
 			<name>java</name>
 			<type>2</type>
-			<location>/home/xavier/NVPACK/Samples/GameWorks_Samples/extensions/src/NvAppBase/java</location>
+			<location>/home/lineo/NVPACK/Samples/GameWorks_Samples/extensions/src/NvAppBase/java</location>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -11,7 +11,6 @@
 NativeCamera::NativeCamera(NvPlatformContext* platform) :
     NvSampleApp(platform, "NativeCamera")
 {
-	LOGI("NativeCamera: new \n");
     mFrameRate.reset( new NvFramerateCounter(this) );
     mViewAspectRatio = 1.0f;
 
@@ -25,13 +24,22 @@ NativeCamera::~NativeCamera()
 }
 
 void NativeCamera::configurationCallback(NvEGLConfiguration& config)
-{
-    config.depthBits = 24;
-    config.stencilBits = 0;
+{ 
+    config.depthBits = 24; 
+    config.stencilBits = 0; 
     config.apiVer = NvGfxAPIVersionGL4();
 }
 
 void NativeCamera::focusChanged( bool focused ) {
+
+    if ( focused )
+    {
+        startCamera();
+    }
+    else
+    {
+        stopCamera();
+    }
 }
 
 void NativeCamera::initUI() {
@@ -53,6 +61,7 @@ void NativeCamera::initRendering(void) {
             NvGLSLProgram::createFromFiles("shaders/plain.vert",
             "shaders/yuv.frag"));
 
+    setupStreamTextures( mPreviewStream.get(), mPreviewTextures);
 }
 
 void NativeCamera::reshape(int32_t width, int32_t height)
@@ -63,6 +72,49 @@ void NativeCamera::reshape(int32_t width, int32_t height)
     CHECK_GL_ERROR();
 }
 
+void NativeCamera::startCamera()
+{
+
+    // Create an instance of the camera manager.
+    mCameraManager = nv::camera2::CameraManager::createCameraManager();
+    if ( !mCameraManager ) return;
+
+    // Get the camera properties for the first camera (0)
+    mCameraManager->queryStaticProperties( 0, mStaticProperties );
+
+    // Create a camera device to refer to camera (0)
+    mCameraDevice = mCameraManager->createCameraDevice( 0, NULL);
+    if ( !mCameraDevice ) return;
+
+    // Create a 1080p preview stream
+    // 1080p is a supported size. You can query for other supported sizes
+    // from mStaticProperties.availableYUVSizes
+    mPreviewStream = mCameraDevice->createStream( nv::camera2::YCbCr_420_888,
+            nv::camera2::Size(1920, 1080) );
+    if ( !mPreviewStream ) return;
+
+    // Initialize a request - the PREVIEW intent will initialize the request
+    // with the default settings for viewfinder requests.
+    mCameraDevice->initializeDefaultSettings(
+            nv::camera2::CAPTURE_INTENT::PREVIEW, mRequest );
+
+    // Set the preview stream as output.
+    mRequest.outputs.clear();
+    mRequest.outputs.push_back( mPreviewStream.get() );
+
+    mCameraDevice->capture(mRequest);
+}
+
+void NativeCamera::stopCamera()
+{
+    // Cancel the streaming request
+    mCameraDevice->cancelRequest(mRequest.requestId);
+
+    // Destroy the camera objects in reverse order
+    mPreviewStream = nullptr;
+    mCameraDevice = nullptr;
+    mCameraManager = nullptr;
+}
 
 void NativeCamera::setupStreamTextures( const nv::camera2::CameraStream *stream,
     GLuint *textures)
@@ -202,6 +254,23 @@ void NativeCamera::draw(void)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Nothing to draw if the preview stream is no longer running.
+    if ( !mPreviewStream ) return;
+
+    // Dequeue the next available frame - do not wait, if a frame
+    // is not available we will render the previous frame.
+    std::unique_ptr<nv::camera2::CameraFrame> frame;
+    frame = mPreviewStream->dequeue( 0 );
+
+    if ( frame )
+    {
+        // Update the textures with the image content.
+        uploadImage( *(frame->imageBuffer.get()), mPreviewTextures );
+    }
+
+    // Draw the image
+    drawStreamImage(mPreviewStream.get(), mPreviewTextures);
 
     // print fps
     if (mFrameRate->nextFrame())
